@@ -84,13 +84,15 @@
         for (const [key, name] of Object.entries(settings)) {
           if (name && line.startsWith(name + '：')) {
             const content = line.replace(name + '：', '').trim();
-            result.push(`${key}"\${content}……"`);
+            result.push(`${key}"${content}……"`);
             matched = true;
             break;
           }
         }
-        if (!matched) {
-          result.push(`"\${line.trim()}"`);
+        if (!matched && line.trim()) {
+          result.push(`"${line.trim()}"`);
+        } else if (!matched) {
+          result.push('');
         }
       });
 
