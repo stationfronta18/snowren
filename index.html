@@ -8,7 +8,7 @@
     textarea { width: 100%; height: 150px; margin-bottom: 1rem; }
     .settings input { width: 100px; margin: 2px; }
     .output { white-space: pre-wrap; background: #f9f9f9; padding: 1rem; border: 1px solid #ccc; margin-top: 1rem; }
-    button { padding: 0.5rem 1rem; margin: 0.5rem 0; }
+    button { padding: 0.5rem 1rem; margin: 0.5rem 0.25rem; }
   </style>
 </head>
 <body>
@@ -16,6 +16,8 @@
 
   <h3>設定集 (A-Z 對應角色名)</h3>
   <div class="settings" id="settings"></div>
+
+  <button onclick="clearSettings()">清空設定</button>
 
   <h3>原始文本</h3>
   <textarea id="inputText" placeholder="貼上原始劇本文字"></textarea>
@@ -29,6 +31,7 @@
   <script>
     const settingsDiv = document.getElementById('settings');
     const settings = {};
+    const localStorageKey = 'text-tool-settings';
 
     // 初始化設定欄 A-Z
     for (let i = 65; i <= 90; i++) {
@@ -36,9 +39,39 @@
       const input = document.createElement('input');
       input.placeholder = `${char} = `;
       input.dataset.key = char;
-      input.oninput = () => settings[char] = input.value.trim();
+      input.value = '';
+
+      input.oninput = () => {
+        settings[char] = input.value.trim();
+        saveSettings();
+      };
+
       settingsDiv.appendChild(input);
       settings[char] = '';
+    }
+
+    function saveSettings() {
+      localStorage.setItem(localStorageKey, JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem(localStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        for (const [key, value] of Object.entries(parsed)) {
+          settings[key] = value;
+          const input = [...settingsDiv.children].find(inp => inp.dataset.key === key);
+          if (input) input.value = value;
+        }
+      }
+    }
+
+    function clearSettings() {
+      localStorage.removeItem(localStorageKey);
+      for (const input of settingsDiv.children) {
+        input.value = '';
+        settings[input.dataset.key] = '';
+      }
     }
 
     function transformText() {
@@ -51,13 +84,13 @@
         for (const [key, name] of Object.entries(settings)) {
           if (name && line.startsWith(name + '：')) {
             const content = line.replace(name + '：', '').trim();
-            result.push(`${key}"${content}……"`);
+            result.push(`${key}"\${content}……"`);
             matched = true;
             break;
           }
         }
         if (!matched) {
-          result.push(`"${line.trim()}"`);
+          result.push(`"\${line.trim()}"`);
         }
       });
 
@@ -70,6 +103,9 @@
         alert('已複製結果！');
       });
     }
+
+    // 初始化時載入設定
+    loadSettings();
   </script>
 </body>
 </html>
