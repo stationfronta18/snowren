@@ -7,7 +7,7 @@
   <style>
     body { font-family: sans-serif; padding: 2rem; max-width: 800px; margin: auto; }
     textarea { width: 100%; height: 150px; margin-bottom: 1rem; }
-    .settings input { width: 100px; margin: 2px; }
+    .settings input { display: none; }
     .output { white-space: pre-wrap; background: #f9f9f9; padding: 1rem; border: 1px solid #ccc; margin-top: 1rem; }
     button { padding: 0.5rem 1rem; margin: 0.5rem 0.25rem; }
   </style>
@@ -15,13 +15,7 @@
 <body>
   <h1>角色文本轉換工具 1.0.3 開發者:站前都都</h1>
   <a href="https://docs.google.com/spreadsheets/d/1ga9f117SjOxHvNQ9Cx9x1bwx-r3GRVa-ipDSOYjVDm8/edit?gid=883689505#gid=883689505" class="edit-link" target="_blank">編輯角色</a>
-  <a href="https://stationfronta18.github.io/COPY/" class="edit-link" target="_blank">編輯角色</a>
-
-  <h3>設定集 (A-Z 對應角色名)</h3>
-  <div class="settings" id="settings"></div>
-
-  <button onclick="clearSettings()">清空設定</button>
-
+  <a href="https://stationfronta18.github.io/COPY/" class="edit-link" target="_blank">自動複製語法</a>
   <h3>原始文本</h3>
   <textarea id="inputText" placeholder="貼上原始劇本文字"></textarea>
 
@@ -32,7 +26,7 @@
   <div id="output" class="output"></div>
 
   <script>
-    const settingsDiv = document.getElementById('settings');
+    const settings = {};
     const API_KEY = 'AIzaSyBF9oMJZ7TRjRpCxeQ8ardtg72fE4tq64E';
     const SPREADSHEET_ID = '1ga9f117SjOxHvNQ9Cx9x1bwx-r3GRVa-ipDSOYjVDm8';
     const range = '工作表2!B2:B27';
@@ -43,22 +37,12 @@
           const data = response.data.values;
           data.forEach((value, index) => {
             const char = String.fromCharCode(65 + index); // A-Z
-            const input = document.createElement('input');
-            input.placeholder = `${char} = `;
-            input.dataset.key = char;
-            input.value = value[0];
-            settingsDiv.appendChild(input);
+            settings[value[0]] = char;
           });
         })
         .catch(error => {
           console.error('Error fetching settings:', error);
         });
-    }
-
-    function clearSettings() {
-      for (const input of settingsDiv.children) {
-        input.value = '';
-      }
     }
 
     function transformText() {
@@ -67,16 +51,18 @@
       const result = [];
 
       lines.forEach(line => {
-        for (const input of settingsDiv.children) {
-          const key = input.dataset.key;
-          const name = input.value;
-          if (name && line.startsWith(name + '：')) {
+        let transformed = false;
+        for (const name in settings) {
+          if (line.startsWith(name + '：')) {
             const content = line.replace(name + '：', '').trim();
-            result.push(`${key} "${content}……"`);
-            return; // found and processed the line
+            result.push(`${settings[name]} "${content}"`);
+            transformed = true;
+            break;
           }
         }
-        if (line.trim()) result.push(`"${line.trim()}"`); // no name matched
+        if (!transformed) {
+          result.push(`"${line.trim()}"`);
+        }
       });
 
       document.getElementById('output').innerText = result.join('\n');
