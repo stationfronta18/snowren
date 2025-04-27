@@ -51,20 +51,34 @@
       const result = [];
 
       lines.forEach(line => {
-        if (line.trim() === '') {
-          result.push(''); // Keep empty lines as they are
-        } else {
+        const trimmed = line.trim();
+        
+        if (trimmed === '') {
+          result.push(''); // 空行直接保留
+        } 
+        // 第1種：murmur處理
+        else if (trimmed.startsWith('murmur：')) {
+          const content = trimmed.replace('murmur：', '').trim();
+          result.push(`A "（${content}）"`);
+        } 
+        // 第2種：( )包起來的敘述
+        else if (/^（.*）$/.test(trimmed)) {
+          const content = trimmed.slice(1, -1); // 去掉前後括號
+          result.push(`“${content}”`);
+        } 
+        // 原本的角色說話處理
+        else {
           let transformed = false;
           for (const name in settings) {
-            if (line.startsWith(name + '：')) {
-              const content = line.replace(name + '：', '').trim();
+            if (trimmed.startsWith(name + '：')) {
+              const content = trimmed.replace(name + '：', '').trim();
               result.push(`${settings[name]} "${content}"`);
               transformed = true;
               break;
             }
           }
           if (!transformed) {
-            result.push(`"${line.trim()}"`);
+            result.push(`"${trimmed}"`);
           }
         }
       });
