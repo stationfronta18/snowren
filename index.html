@@ -13,7 +13,7 @@
   </style>
 </head>
 <body>
-  <h1>角色文本轉換工具 1.0.5 開發者:站前都都</h1>
+  <h1>角色文本轉換工具 1.0.6 開發者:站前都都</h1>
   <a href="https://docs.google.com/spreadsheets/d/1ga9f117SjOxHvNQ9Cx9x1bwx-r3GRVa-ipDSOYjVDm8/edit?gid=883689505#gid=883689505" class="edit-link" target="_blank">編輯角色</a>
   <a href="https://stationfronta18.github.io/copy/" class="edit-link" target="_blank">自動複製語法</a>
   <h3>原始文本</h3>
@@ -57,10 +57,10 @@
           result.push(''); // 空行直接保留
         } 
         // 第1種：murmur處理
-        // else if (trimmed.startsWith('murmur：')) {
-        //   const content = trimmed.replace('murmur：', '').trim();
-        //   result.push(`A "（${content}）"`);
-        // } 
+        else if (trimmed.startsWith('murmur：')) {
+          const content = trimmed.replace('murmur：', '').trim();
+          result.push(`murmur "（${content}）"`);
+        } 
         // 第2種：( )包起來的敘述
         else if (/^（.*）$/.test(trimmed)) {
           const content = trimmed.slice(1, -1); // 去掉前後括號
